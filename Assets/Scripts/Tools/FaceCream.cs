@@ -1,17 +1,8 @@
-using System;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class FaceCream : Tool
 {
-    private Vector3 originalPosition;
-    
-    private void Start()
-    {
-        originalPosition = transform.position;
-    }
-
     public override void OnTouch()
     {
         if (isPrepared) return;
@@ -22,11 +13,25 @@ public class FaceCream : Tool
         isPrepared = true;
     }
 
-    public override void OnDrag(Vector3 position)
+    public override void OnRelease(Vector3 position)
     {
         if (!isPrepared) return;
         
-        transform.position = position;
+        Collider2D collider = GetComponent < Collider2D>();
+        
+        collider.enabled = false;
+        RaycastHit2D hit = Physics2D.Raycast(position, Vector2.zero);
+        collider.enabled = true;
+    
+        if (hit.collider)
+        {
+            var character = hit.collider.GetComponent<Character>();
+            if (character)
+            {
+                DOTween.Sequence().Append(transform.DOShakePosition(.5f, 25f, 10, 90, false, true))
+                    .OnComplete(OnFinish);
+            }
+        }
     }
 
     public override void OnFinish()
